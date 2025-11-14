@@ -1,5 +1,14 @@
-FROM teddysun/xray:latest
+FROM golang:1.24 AS building
 
-COPY config.json /etc/xray/config.json
+COPY . /building
+WORKDIR /building
 
-CMD ["/usr/bin/xray", "-config", "/etc/xray/config.json"]
+RUN make frps
+
+FROM alpine:3
+
+RUN apk add --no-cache tzdata
+
+COPY --from=building /building/bin/frps /usr/bin/frps
+
+ENTRYPOINT ["/usr/bin/frps"]
